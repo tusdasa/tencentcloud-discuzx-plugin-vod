@@ -32,6 +32,16 @@ use Vod\Model\VodUploadRequest;
 
 defined('TENCENT_DISCUZX_VOD_PLUGIN_NAME') || define('TENCENT_DISCUZX_VOD_PLUGIN_NAME', 'tencentcloud_vod');
 
+function base64url_encode($data) {
+    return rtrim(strtr(base64_encode(json_encode($data)), '+/', '-_'), '=');
+}
+
+function urlsafeB64Encode($input)
+{
+    return str_replace('=', '', strtr(base64_encode($input), '+/', '-_'));
+}
+
+
 class VODActions
 {
     const PLUGIN_TYPE = 'vod';
@@ -101,6 +111,17 @@ class VODActions
      */
     public function parseContentPlayer($content, $playerID)
     {
+		$HEADER = [
+			"alg"=>"HS256",
+			"typ"=>"JWT",
+		];
+		// 播放器密钥 https://cloud.tencent.com/document/product/266/45554
+		$key = "you key";
+		$audioVideoType = "Original"; // 播放的音视频类型
+		$currentTime = time();
+		$psignExpire = $currentTime + 3600; // 可任意设置过期时间，示例1h
+		$urlTimeExpire = dechex($psignExpire); // 可任意设置过期时间，16进制字符串形式，示例1h
+
         $pattern = '/\[tcplayer\](\d+)\[\/tcplayer\]/';
         $matches = array();
         preg_match($pattern, $content, $matches);
@@ -116,6 +137,24 @@ class VODActions
             return preg_replace($pattern, $player, $content);
         }
         $appID = $VODOptions->getAppID();
+
+		$PAYLOAD = array(
+			"appId" => intval($appID), //配置成云点播的APPID
+			"fileId" => $fileID,
+			"contentInfo" => array(
+				"audioVideoType" => $audioVideoType,
+			),
+			"currentTimeStamp" => $currentTime,
+			"expireTimeStamp" => $psignExpire,
+			"urlAccessInfo" => array(
+				"t" => $urlTimeExpire,
+			),
+		);
+		$CONTENT = base64url_encode($HEADER).".".base64url_encode($PAYLOAD);
+		$Signature = hash_hmac("SHA256",$CONTENT,$key,true);
+		// 生成签名, 替换模板
+		$pSign = $CONTENT.".".urlsafeB64Encode($Signature);
+
         $playerID = 'player-container-id-' . $playerID;
         include template('tencentcloud_vod:tcplayer');
         $tcplayer = str_replace("\n", '', $tcplayer);

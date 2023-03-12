@@ -15,9 +15,14 @@
 -->
 
 <!--{block tcplayer}-->
-<link href="source/plugin/tencentcloud_vod/css/tcplayer.css" rel="stylesheet">
+<!--<link href="source/plugin/tencentcloud_vod/css/tcplayer.css" rel="stylesheet">
 <script src="source/plugin/tencentcloud_vod/js/hls.min.0.13.2m.js"></script>
-<script src="source/plugin/tencentcloud_vod/js/tcplayer.v4.1.min.js"></script>
+<script src="source/plugin/tencentcloud_vod/js/tcplayer.v4.1.min.js"></script>-->
+<!-- 更新播放到4.7.2版本 -->
+<!-- https://cloud.tencent.com/document/product/881/30818 -->
+<link href="https://web.sdk.qcloud.com/player/tcplayer/release/v4.7.2/tcplayer.min.css" rel="stylesheet"/>
+<script src="https://web.sdk.qcloud.com/player/tcplayer/release/v4.7.2/libs/hls.min.1.1.6.js"></script>
+<script src="https://web.sdk.qcloud.com/player/tcplayer/release/v4.7.2/tcplayer.v4.7.2.min.js"></script>
 <script src="source/plugin/tencentcloud_vod/js/jquery.min.js"></script>
 <video id="$playerID" data-file-id="$fileID" width="305" height="160" preload="auto" playsinline webkit-playsinline></video>
 <script type="text/javascript">
@@ -28,6 +33,7 @@ var fileID=$('#'+playerID).data('file-id');
 var player = TCPlayer(playerID, {
 fileID: fileID,
 appID: '$appID',
+psign: '$pSign'
 });
 });
 </script>
